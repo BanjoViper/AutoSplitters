@@ -1,5 +1,5 @@
-state("Shantae and the Pirate's Curse", "v1.04g (GOG)") //GOG version
-{
+state("Shantae and the Pirate's Curse") //GOG version
+{/*
 	int bossHealth: 0x2EAB30, 0x70, 0x5C, 0x48, 0x948;
 	int finalBossHealth: 0x2EAB30, 0x18, 0x148, 0x948;
 	long keyItems1_1stSave: 0x2EBD08;
@@ -12,11 +12,11 @@ state("Shantae and the Pirate's Curse", "v1.04g (GOG)") //GOG version
 	int buttonInputs: 0x2F915C;
 	int keyboardInputs: 0x2F03AC, 0x44;
 	int cursorLocationDifficultyScreen: 0x2E6134, 0x30, 0x50, 0x0, 0x10, 0x8, 0x1C;
-	int musicState: 0x2F0394, 0x2C;
+	int musicState: 0x2F0394, 0x2C;*/
 }
 
-state("ShantaeCurse", "v1.03 (Steam)") //Steam version
-{
+state("ShantaeCurse") //Steam version
+{/*
 	int bossHealth: 0x2F26D0, 0x18, 0x12C, 0x4, 0x948;
 	int finalBossHealth: 0x2F26D0, 0x18, 0xCC, 0x48, 0xA0, 0x150, 0x948;
 	long keyItems1_1stSave: 0x2F38A8;
@@ -29,7 +29,7 @@ state("ShantaeCurse", "v1.03 (Steam)") //Steam version
 	int buttonInputs: 0x3022D8;
 	int keyboardInputs: 0x2F88A0, 0x44;
 	int cursorLocationDifficultyScreen: 0x2ECC40, 0x3C, 0x44, 0x4, 0xC, 0x18, 0x0, 0x38;
-	int musicState: 0x2F8878, 0x2C;
+	int musicState: 0x2F8878, 0x2C;*/
 }
 
 startup
@@ -180,7 +180,9 @@ startup
 init
 {
 //Populate the 1st hash with a list of runner selected items to be split automatically.
+	print("Shantae and the Pirate's Curse AutoSpltter: Before keyItemsHash1 declaration.");
 	vars.keyItems1Hash = new HashSet<long>{};
+	print("Shantae and the Pirate's Curse AutoSpltter: After keyItemsHash1 declaration.");
 	if (settings["courtSummons"]){
 		vars.keyItems1Hash.Add(vars.courtSummons);
 	}
@@ -271,9 +273,11 @@ init
 	if (settings["lonelyGraveMap"]){
 		vars.keyItems1Hash.Add(vars.lonelyGraveMap);
 	}
+	print("Shantae and the Pirate's Curse AutoSpltter: After keyItemsHash1 population.");
 
 //Populate the 2nd hash with a list of runner selected items to be split automatically.		
 	vars.keyItems2Hash = new HashSet<long>{};
+	print("Shantae and the Pirate's Curse AutoSpltter: After keyItemsHash2 declaration.");
 		if (settings["goldenPickaxe"]){
 		vars.keyItems2Hash.Add(vars.goldenPickaxe);
 		}
@@ -298,8 +302,10 @@ init
 		if (settings["spiritOfJoe"]){
 			vars.keyItems2Hash.Add(vars.spiritOfJoe);
 		}
+		print("Shantae and the Pirate's Curse AutoSpltter: After keyItemsHash2 population.");
 	
 //Populate the hash with a list of runner selected bosses to split automatically.
+	print("Shantae and the Pirate's Curse AutoSpltter: After bossHealthHash declaration.");
 	vars.bossHealthHash = new HashSet<int>{};
 	if (settings["cyclopsPlant"]){
 		vars.bossHealthHash.Add(vars.cyclopsPlantPhase1Health);
@@ -320,11 +326,23 @@ init
 		vars.bossHealthHash.Add(vars.pirateMasterHealth);
 	}
 	
+	vars.scaff = true;
+	vars.counter = 1;
 	print("Shantae and the Pirate's Curse AutoSpltter: Ready!");
 }
 
-start
+update
 {
+	if(vars.scaff == true && vars.counter < 11){
+		//print("Update is running: "+vars.counter.ToString());
+		vars.counter++;
+		//vars.scaff = false;
+	}
+
+}
+
+start
+{/*
 //Check if runner has Auto Start enabled and if so, activate timer on mode selection.
 	//For controller input
 	if (settings["autoStart"] && current.screenState == 1819632489 && current.buttonInputs == 4096 && current.cursorLocationDifficultyScreen != 999999){
@@ -333,7 +351,7 @@ start
 	//For keyboard input
 	if (settings["autoStart"] && current.screenState == 1819632489 && current.keyboardInputs == 268435456 && current.cursorLocationDifficultyScreen != 999999){
 		return true;
-	}
+	}*/
 }
 
 split
