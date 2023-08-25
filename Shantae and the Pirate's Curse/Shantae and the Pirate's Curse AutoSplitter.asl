@@ -1,5 +1,5 @@
-state("Shantae and the Pirate's Curse") //GOG version
-{/*
+state("Shantae and the Pirate's Curse", "v1.04g (GOG)")
+{
 	int bossHealth: 0x2EAB30, 0x70, 0x5C, 0x48, 0x948;
 	int finalBossHealth: 0x2EAB30, 0x18, 0x148, 0x948;
 	long keyItems1_1stSave: 0x2EBD08;
@@ -12,11 +12,11 @@ state("Shantae and the Pirate's Curse") //GOG version
 	int buttonInputs: 0x2F915C;
 	int keyboardInputs: 0x2F03AC, 0x44;
 	int cursorLocationDifficultyScreen: 0x2E6134, 0x30, 0x50, 0x0, 0x10, 0x8, 0x1C;
-	int musicState: 0x2F0394, 0x2C;*/
+	int musicState: 0x2F0394, 0x2C;
 }
 
-state("ShantaeCurse") //Steam version
-{/*
+state("ShantaeCurse", "v1.03 (Steam)")
+{
 	int bossHealth: 0x2F26D0, 0x18, 0x12C, 0x4, 0x948;
 	int finalBossHealth: 0x2F26D0, 0x18, 0xCC, 0x48, 0xA0, 0x150, 0x948;
 	long keyItems1_1stSave: 0x2F38A8;
@@ -29,7 +29,7 @@ state("ShantaeCurse") //Steam version
 	int buttonInputs: 0x3022D8;
 	int keyboardInputs: 0x2F88A0, 0x44;
 	int cursorLocationDifficultyScreen: 0x2ECC40, 0x3C, 0x44, 0x4, 0xC, 0x18, 0x0, 0x38;
-	int musicState: 0x2F8878, 0x2C;*/
+	int musicState: 0x2F8878, 0x2C;
 }
 
 startup
@@ -103,19 +103,22 @@ startup
 //Settings Options Declarations
 	
 	settings.Add("autoSplitterActive", true, "AutoSplitter Active - Mouse over for info");
-	settings.SetToolTip("autoSplitterActive", "Turns the AutoSplitter on and off. Must be on to select anything else below.\nSelect which options you want handled automatically from the sub-categories,\nthen go set up your splits in Edit Splits to match the order in which they will happen.\nIf you select options that you do not do in the run, they will be safely ignored.\nIf the game is running, restart the game to have changes here take effect.");
+	settings.SetToolTip("autoSplitterActive", "Turns the AutoSplitter on and off. Must be on to select anything else below.\nSelect which options you want handled automatically from the sub-categories,\nthen go set up your splits in Edit Splits to match the order in which they will happen.\nIf you select options that you do not do in the run, they will be safely ignored.\nIf the game is running, deactivate and activate the autosplitter from Edit Splits to have changes here take effect.");
 	
 	settings.Add("autoStart", true, "Auto-Start", "autoSplitterActive");
-	settings.SetToolTip("autoStart", "Will automatically start the timer upon pressing A on Normal Mode or Pirate Mode.\nNote: Auto-Start only supports gamepad input at this time.");
+	settings.SetToolTip("autoStart", "Will automatically start the timer upon pressing A on Normal Mode or Pirate Mode.");
 	
 	settings.Add("itemSplits", true, "Item Splits", "autoSplitterActive");
 	settings.SetToolTip("itemSplits", "Must be on to select any items below.\nItems checked will be split upon pick up.");
 	
 	settings.Add("bossSplits", true, "Boss Splits", "autoSplitterActive");
-	settings.SetToolTip("bossSplits", "Must be on to select any bosses below.\nBosses checked will be split upon last hit (reaching 0 health).");
+	settings.SetToolTip("bossSplits", "Must be on to select any bosses below.\nBosses checked will be split upon defeat.");
 	
 	settings.Add("otherSplits", true, "Other Splits", "autoSplitterActive");
 	settings.SetToolTip("otherSplits", "Must be on to select any options below.\nMouse over options to see more details.");
+	
+	settings.Add("debugMode", false, "Debug Mode", "autoSplitterActive");
+	settings.SetToolTip("debugMode", "Enable to print extra info to the console after the game is started. Viewable with the DebugView program or something like it.");
 	
 //Individual Item Options
 
@@ -167,22 +170,24 @@ startup
 	settings.Add("dagron", false, "Dagron", "bossSplits");
 	settings.Add("steelMaggot", false, "Steel Maggot", "bossSplits");
 	settings.Add("pirateMaster", false, "Pirate Master", "bossSplits");
-	settings.Add("truePirateMaster", false, "True Pirate Master", "bossSplits");
+	settings.Add("truePirateMaster", false, "Pirate Master's True Form", "bossSplits");
 		
 //Other Options
 	
 	settings.Add("runRunRottytops", false, "Run, Run, Rottytops!", "otherSplits");
 	settings.SetToolTip("runRunRottytops", "Will split when the screen goes black after reaching Abner with Rottytops.");
-		
-	print("Shantae and the Pirate's Curse AutoSpltter: Ret-2-Go!!");
 }
 
 init
 {
 //Populate the 1st hash with a list of runner selected items to be split automatically.
-	print("Shantae and the Pirate's Curse AutoSpltter: Before keyItemsHash1 declaration.");
+	
+	if (settings["debugMode"]){
+		print("Shantae and the Pirate's Curse AutoSplitter: Creating hash set for Key Items 1.");
+	}
+	
 	vars.keyItems1Hash = new HashSet<long>{};
-	print("Shantae and the Pirate's Curse AutoSpltter: After keyItemsHash1 declaration.");
+	
 	if (settings["courtSummons"]){
 		vars.keyItems1Hash.Add(vars.courtSummons);
 	}
@@ -273,39 +278,50 @@ init
 	if (settings["lonelyGraveMap"]){
 		vars.keyItems1Hash.Add(vars.lonelyGraveMap);
 	}
-	print("Shantae and the Pirate's Curse AutoSpltter: After keyItemsHash1 population.");
+	if (settings["debugMode"]){
+		print("Shantae and the Pirate's Curse AutoSplitter: Hash set for Key Items 1 created.");
+	}
 
-//Populate the 2nd hash with a list of runner selected items to be split automatically.		
+//Populate the 2nd hash with a list of runner selected items to be split automatically.
+	
+	if (settings["debugMode"]){
+		print("Shantae and the Pirate's Curse AutoSplitter: Creating hash set for Key Items 2.");
+	}
+	
 	vars.keyItems2Hash = new HashSet<long>{};
-	print("Shantae and the Pirate's Curse AutoSpltter: After keyItemsHash2 declaration.");
-		if (settings["goldenPickaxe"]){
-		vars.keyItems2Hash.Add(vars.goldenPickaxe);
-		}
-		if (settings["locket"]){
-		vars.keyItems2Hash.Add(vars.locket);
-		}
-		if (settings["hopefulFlame"]){
-			vars.keyItems2Hash.Add(vars.hopefulFlame);
-		}
-		if (settings["manlyMusk"]){
-			vars.keyItems2Hash.Add(vars.manlyMusk);
-		}
-		if (settings["lostSoul"]){
-		vars.keyItems2Hash.Add(vars.lostSoul);
-		}
-		if (settings["targetingModule"]){
-			vars.keyItems2Hash.Add(vars.targetingModule);
-		}
-		if (settings["enchantedBlade"]){
-			vars.keyItems2Hash.Add(vars.enchantedBlade);
-		}
-		if (settings["spiritOfJoe"]){
-			vars.keyItems2Hash.Add(vars.spiritOfJoe);
-		}
-		print("Shantae and the Pirate's Curse AutoSpltter: After keyItemsHash2 population.");
+	
+	if (settings["goldenPickaxe"]){
+	vars.keyItems2Hash.Add(vars.goldenPickaxe);
+	}
+	if (settings["locket"]){
+	vars.keyItems2Hash.Add(vars.locket);
+	}
+	if (settings["hopefulFlame"]){
+		vars.keyItems2Hash.Add(vars.hopefulFlame);
+	}
+	if (settings["manlyMusk"]){
+		vars.keyItems2Hash.Add(vars.manlyMusk);
+	}
+	if (settings["lostSoul"]){
+	vars.keyItems2Hash.Add(vars.lostSoul);
+	}
+	if (settings["targetingModule"]){
+		vars.keyItems2Hash.Add(vars.targetingModule);
+	}
+	if (settings["enchantedBlade"]){
+		vars.keyItems2Hash.Add(vars.enchantedBlade);
+	}
+	if (settings["spiritOfJoe"]){
+		vars.keyItems2Hash.Add(vars.spiritOfJoe);
+	}
+	if (settings["debugMode"]){
+		print("Shantae and the Pirate's Curse AutoSplitter: Hash set for Key Items 2 created.");
+	}
 	
 //Populate the hash with a list of runner selected bosses to split automatically.
-	print("Shantae and the Pirate's Curse AutoSpltter: After bossHealthHash declaration.");
+	if (settings["debugMode"]){
+		print("Shantae and the Pirate's Curse AutoSplitter: Creating hash set for Bosses.");
+	}
 	vars.bossHealthHash = new HashSet<int>{};
 	if (settings["cyclopsPlant"]){
 		vars.bossHealthHash.Add(vars.cyclopsPlantPhase1Health);
@@ -325,25 +341,18 @@ init
 	if (settings["pirateMaster"]){
 		vars.bossHealthHash.Add(vars.pirateMasterHealth);
 	}
-	
-	vars.scaff = true;
-	vars.counter = 1;
-	print("Shantae and the Pirate's Curse AutoSpltter: Ready!");
-}
-
-update
-{
-	if(vars.scaff == true && vars.counter < 11){
-		//print("Update is running: "+vars.counter.ToString());
-		vars.counter++;
-		//vars.scaff = false;
+	if (settings["debugMode"]){
+		print("Shantae and the Pirate's Curse AutoSplitter: Hash set for Bosses created.");
 	}
-
+	if (settings["debugMode"]){
+		print("Shantae and the Pirate's Curse AutoSplitter: Init complete. Ret-2-Go!!");
+	}
 }
 
 start
-{/*
-//Check if runner has Auto Start enabled and if so, activate timer on mode selection.
+{
+//Check if the runner has Auto Start enabled. If so, activate timer on mode selection.
+
 	//For controller input
 	if (settings["autoStart"] && current.screenState == 1819632489 && current.buttonInputs == 4096 && current.cursorLocationDifficultyScreen != 999999){
 		return true;
@@ -351,31 +360,39 @@ start
 	//For keyboard input
 	if (settings["autoStart"] && current.screenState == 1819632489 && current.keyboardInputs == 268435456 && current.cursorLocationDifficultyScreen != 999999){
 		return true;
-	}*/
+	}
 }
 
 split
 {
 //Logic for splitting on item pickup in keyItems1Hash.
 	if (vars.keyItems1Hash.Contains(current.keyItems1_1stSave-old.keyItems1_1stSave) || vars.keyItems1Hash.Contains(current.keyItems1_2ndSave-old.keyItems1_2ndSave) || vars.keyItems1Hash.Contains(current.keyItems1_3rdSave-old.keyItems1_3rdSave)){
-		print("Shantae and the Pirate's Curse AutoSpltter: Split on Key Items 1!");
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Split! Picked up a Key Item in Key Items 1.");
+		}
 		return true;
 	}
 	
 //Logic for splitting on item pickup in keyItems2Hash.	
 	if (vars.keyItems2Hash.Contains(current.keyItems2_1stSave-old.keyItems2_1stSave) || vars.keyItems2Hash.Contains(current.keyItems2_2ndSave-old.keyItems2_2ndSave) || vars.keyItems2Hash.Contains(current.keyItems2_3rdSave-old.keyItems2_3rdSave)){
-		print("Shantae and the Pirate's Curse AutoSpltter: Split on Key Items 2!");
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Split! Picked up a Key Item in Key Items 2.");
+		}
 		return true;
 	}
 	
 //Logic for splitting on bosses other than Ammo Baron and True Pirate Master.
 	if (!vars.fightingBoss && !vars.fightingAmmoBaron && !vars.fightingFinalBoss  && vars.bossHealthHash.Contains(current.bossHealth)){
 		vars.fightingBoss = true;
-		print("Shantae and the Pirate's Curse AutoSpltter: Fighting a boss!");
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Fighting a boss! Are you ready to tussle?");
+		}
 	}
 	if (vars.fightingBoss && current.bossHealth == 0){
 		vars.fightingBoss = false;
-		print("Shantae and the Pirate's Curse AutoSpltter: Split on boss defeat!");
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Split! Defeated a boss.");
+		}
 		return true;
 	}
 	
@@ -383,11 +400,15 @@ split
 	if (settings["ammoBaron"]){
 		if (!vars.fightingBoss && !vars.fightingAmmoBaron && !vars.fightingFinalBoss && current.bossHealth == vars.ammoBaronHealth){
 			vars.fightingAmmoBaron = true;
-			print("Shantae and the Pirate's Curse AutoSpltter: Fighting Ammo Baron!");
+			if (settings["debugMode"]){
+				print("Shantae and the Pirate's Curse AutoSplitter: Fighting Ammo Baron!");
+			}
 		}
 		if (vars.fightingAmmoBaron && current.bossHealth == 65536 && current.musicState == vars.musicNothing){
 			vars.fightingAmmoBaron = false;
-			print("Shantae and the Pirate's Curse AutoSpltter: Split on Ammo Baron defeat!");
+			if (settings["debugMode"]){
+				print("Shantae and the Pirate's Curse AutoSplitter: Split! Defeated Ammo Baron.");
+			}
 			return true;
 		}
 	}
@@ -396,15 +417,21 @@ split
 	if (settings["truePirateMaster"]){
 		if (!vars.fightingBoss && !vars.fightingAmmoBaron && !vars.fightingFinalBoss && current.finalBossHealth == vars.pirateMasterHealth && current.musicState == vars.musicFinalBoss){
 			vars.fightingFinalBoss = true;
-			print("Shantae and the Pirate's Curse AutoSpltter: Fighting True Pirate Master!");
+			if (settings["debugMode"]){
+				print("Shantae and the Pirate's Curse AutoSplitter: Fighting the Pirate Master's true form!");
+			}
 		}
 		if (vars.fightingFinalBoss && !vars.finalBossMusicReady && current.musicState == vars.musicNothing && old.musicState == vars.musicFinalBoss){
 			vars.finalBossMusicReady = true;
-			print("Shantae and the Pirate's Curse AutoSpltter: Ready to split Final Boss on last hit!");
+			if (settings["debugMode"]){
+				print("Shantae and the Pirate's Curse AutoSplitter: Ready to split on last hit.");
+			}
 			return false;
 		}
 		if (vars.fightingFinalBoss && vars.finalBossMusicReady && current.musicState == vars.musicNothing && old.musicState == vars.musicFinalBoss){
-			print("Shantae and the Pirate's Curse AutoSpltter: Split on True Pirate Master defeated!");
+			if (settings["debugMode"]){
+				print("Shantae and the Pirate's Curse AutoSplitter: Split! Pirate Master's true form defeated!");
+			}
 			return true;
 		}
 	}
@@ -413,6 +440,9 @@ split
 	if (settings["runRunRottytops"]){
 		if (current.musicState == vars.musicRottytops && old.musicState == vars.musicRunRun){
 			print("Shantae and the Pirate's Curse AutoSpltter: Split for Run, Run, Rottytops!");
+			if (settings["debugMode"]){
+				print("Shantae and the Pirate's Curse AutoSplitter: Split! Run, Run, Rottytops finished! Just in time!");
+			}
 			return true;
 		}
 	}
@@ -420,10 +450,11 @@ split
 
 onReset
 {
+//Reset these variables here so back to back runs don't need a script reload and there's not an extra boss split triggered after Pirate Master's true form is defeated.
 
-//Reset these variables here so back to back runs don't need a script reload and there's not an extra boss split called after True Pirate Master is defeated.
-vars.fightingFinalBoss = false;
-vars.finalBossMusicReady = false;
-print("Shantae and the Pirate's Curse AutoSpltter: Variables fightingFinalBoss and finalBossMusicReady reset to false.");
-
+	vars.fightingFinalBoss = false;
+	vars.finalBossMusicReady = false;
+	if (settings["debugMode"]){
+		print("Shantae and the Pirate's Curse AutoSplitter: Resetting variables fightingFinalBoss and finalBossMusicReady to false.");
+	}
 }
