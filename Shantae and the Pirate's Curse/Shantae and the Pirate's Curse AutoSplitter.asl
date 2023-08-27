@@ -8,7 +8,8 @@ state("Shantae and the Pirate's Curse", "v1.04g (GOG)")
 	long keyItems2_2ndSave: 0x2ED734;
 	long keyItems1_3rdSave: 0x2EF158;
 	long keyItems2_3rdSave: 0x2EF15C;
-	int screenState: 0x2EAADC;
+	//int screenState: 0x2EAADC;
+	int screenState: 0x2F26E0;
 	int buttonInputs: 0x2F915C;
 	int keyboardInputs: 0x2F03AC, 0x44;
 	int cursorLocationDifficultyScreen: 0x2E6134, 0x30, 0x50, 0x0, 0x10, 0x8, 0x1C;
@@ -25,7 +26,8 @@ state("ShantaeCurse", "v1.03 (Steam)")
 	long keyItems2_2ndSave: 0x2F52D4;
 	long keyItems1_3rdSave: 0x2F6CF8;
 	long keyItems2_3rdSave: 0x2F6CFC;
-	int screenState: 0x2E5044, 0x4;
+	//int screenState: 0x2E5044, 0x4;
+	int screenState: 0x2FAA64;
 	int buttonInputs: 0x3022D8;
 	int keyboardInputs: 0x2F88A0, 0x44;
 	int cursorLocationDifficultyScreen: 0x2ECC40, 0x3C, 0x44, 0x4, 0xC, 0x18, 0x0, 0x38;
@@ -36,19 +38,25 @@ startup
 {
 	vars.fightingBoss = false;
 	vars.fightingAmmoBaron = false;
+	vars.fightingSquidBaron = false;
 	vars.fightingFinalBoss = false;
+	vars.squidBaronMusicReady = false;
 	vars.finalBossMusicReady = false;
 	
 	vars.ammoBaronHealth = 110*65536;
-	vars.cyclopsPlantPhase1Health = 30*65536;
+	vars.cackleBatHealth = 40*65536;
+	vars.cyclopsPlantPhase2Health = 150*65536;
 	vars.empressSpiderHealth = 375*65536;
 	vars.squidBaronHealth = 800*65536;
-	vars.dagronHealth = 500*65536;
-	vars.steelMaggotHealth = 400*65536;
+	vars.dagronAndSteelMaggotHealth = 400*65536;
 	vars.pirateMasterHealth = 1000*65536;
+	
+	vars.dagronAndSteelMaggotChecker = 0;
+	vars.dagronAndSteelMaggotValue = 0;
 	
 	vars.musicNothing = -1;
 	vars.musicBoss = 25;
+	vars.musicSquidBaron = 43;
 	vars.musicFinalBoss = 34;
 	vars.musicRunRun = 15;
 	vars.musicRottytops = 21;
@@ -164,6 +172,7 @@ startup
 //Individual Boss Options
 
 	settings.Add("ammoBaron", false, "Ammo Baron", "bossSplits");
+	settings.Add("cackleBat", false, "Cackle Bat", "bossSplits");
 	settings.Add("cyclopsPlant", false, "Cyclops Plant", "bossSplits");
 	settings.Add("empressSpider", false, "Empress Spider", "bossSplits");
 	settings.Add("squidBaron", false, "Squid Baron", "bossSplits");
@@ -318,48 +327,131 @@ init
 		print("Shantae and the Pirate's Curse AutoSplitter: Hash set for Key Items 2 created.");
 	}
 	
+//Check if Dagron and Steel Maggot are selected with special logic since they have the same health.
+	if (settings["dagron"] && settings["steelMaggot"]){
+		vars.dagronAndSteelMaggotChecker = 3;
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: \nDagron and Steel Maggot both selected.");
+		}
+	}
+	else if (settings["dagron"] && !settings["steelMaggot"]){
+		vars.dagronAndSteelMaggotChecker = 1;
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: \nDagron only selected.");
+		}
+	}
+	else if (!settings["dagron"] && settings["steelMaggot"]){
+		vars.dagronAndSteelMaggotChecker = 2;
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: \nSteel Maggot only selected.");
+		}
+	}
+	else{
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: \nNeither Dagron or Steel Maggot selected.");
+		}
+	}
+	
+	vars.dagronAndSteelMaggotValue = vars.dagronAndSteelMaggotChecker;
+	if (settings["debugMode"]){
+		print("Shantae and the Pirate's Curse AutoSplitter: \ndagronAndSteelMaggotValue set to value of Checker.");
+	}
+	
 //Populate the hash with a list of runner selected bosses to split automatically.
 	if (settings["debugMode"]){
 		print("Shantae and the Pirate's Curse AutoSplitter: Creating hash set for Bosses.");
+		vars.selectedBosses = new Dictionary<int, string>();
 	}
 	vars.bossHealthHash = new HashSet<int>{};
+	if (settings["ammoBaron"]){
+		vars.bossHealthHash.Add(vars.ammoBaronHealth);
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Added Ammo Baron Health to hash - "+vars.ammoBaronHealth.ToString());
+			vars.selectedBosses.Add(vars.ammoBaronHealth, "Ammo Baron");
+		}
+	}
+	if (settings["cackleBat"]){
+		vars.bossHealthHash.Add(vars.cackleBatHealth);
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Added Cackle Bat Health to hash - "+vars.cackleBatHealth.ToString());
+			vars.selectedBosses.Add(vars.cackleBatHealth, "Cackle Bat");
+		}
+	}
 	if (settings["cyclopsPlant"]){
-		vars.bossHealthHash.Add(vars.cyclopsPlantPhase1Health);
+		vars.bossHealthHash.Add(vars.cyclopsPlantPhase2Health);
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Added Cyclops Plant Health to hash - "+vars.cyclopsPlantPhase2Health.ToString());
+			vars.selectedBosses.Add(vars.cyclopsPlantPhase2Health, "Cyclops Plant");
+		}
 	}
 	if (settings["empressSpider"]){
 		vars.bossHealthHash.Add(vars.empressSpiderHealth);
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Added Empress Spider Health to hash - "+vars.empressSpiderHealth.ToString());
+			vars.selectedBosses.Add(vars.empressSpiderHealth, "Empress Spider");
+		}
 	}
 	if (settings["squidBaron"]){
 		vars.bossHealthHash.Add(vars.squidBaronHealth);
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Added Squid Baron Health to hash - "+vars.squidBaronHealth.ToString());
+			vars.selectedBosses.Add(vars.squidBaronHealth, "Squid Baron");
+		}
 	}
-	if (settings["dagron"]){
-		vars.bossHealthHash.Add(vars.dagronHealth);
-	}
-	if (settings["steelMaggot"]){
-		vars.bossHealthHash.Add(vars.steelMaggotHealth);
+	if (vars.dagronAndSteelMaggotChecker > 0){
+		vars.bossHealthHash.Add(vars.dagronAndSteelMaggotHealth);
+		if (settings["debugMode"]){
+			if (vars.dagronAndSteelMaggotChecker == 1){
+				print("Shantae and the Pirate's Curse AutoSplitter: Added Dagron Health to hash - "+vars.dagronAndSteelMaggotHealth.ToString());
+				vars.selectedBosses.Add(vars.dagronAndSteelMaggotHealth, "Dagron");
+			}
+			else if (vars.dagronAndSteelMaggotChecker == 2){
+				print("Shantae and the Pirate's Curse AutoSplitter: Added Steel Maggot Health to hash - "+vars.dagronAndSteelMaggotHealth.ToString());
+				vars.selectedBosses.Add(vars.dagronAndSteelMaggotHealth, "Steel Maggot");
+			}
+			else if (vars.dagronAndSteelMaggotChecker == 3){
+				print("Shantae and the Pirate's Curse AutoSplitter: Added Dagron and Steel Maggot Health to hash - "+vars.dagronAndSteelMaggotHealth.ToString());
+				vars.selectedBosses.Add(vars.dagronAndSteelMaggotHealth, "Dagron & Steel Maggot");
+			}
+		}
 	}
 	if (settings["pirateMaster"]){
 		vars.bossHealthHash.Add(vars.pirateMasterHealth);
+		if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Added Pirate Master Health to hash - "+vars.pirateMasterHealth.ToString());
+			vars.selectedBosses.Add(vars.pirateMasterHealth, "Pirate Master");
+		}
 	}
 	if (settings["debugMode"]){
 		print("Shantae and the Pirate's Curse AutoSplitter: Hash set for Bosses created.");
 	}
+	
+	
 	if (settings["debugMode"]){
 		print("Shantae and the Pirate's Curse AutoSplitter: Init complete. Ret-2-Go!!");
 	}
+	
 }
 
 start
 {
 //Check if the runner has Auto Start enabled. If so, activate timer on mode selection.
+	if (settings["autoStart"]){
+		if (current.screenState == 29 || current.screenState == 30 || current.screenState == 31){
+			if (current.buttonInputs == 4096 && current.cursorLocationDifficultyScreen != 999999 && current.musicState == 53){
+				if (settings["debugMode"]){
+					print("Shantae and the Pirate's Curse AutoSplitter: Start! Pressed A on Difficulty screen.");
+				}
+				return true;
+			}
 
-	//For controller input
-	if (settings["autoStart"] && current.screenState == 1819632489 && current.buttonInputs == 4096 && current.cursorLocationDifficultyScreen != 999999){
-		return true;
-	}
-	//For keyboard input
-	if (settings["autoStart"] && current.screenState == 1819632489 && current.keyboardInputs == 268435456 && current.cursorLocationDifficultyScreen != 999999){
-		return true;
+			if (current.keyboardInputs == 268435456 && current.cursorLocationDifficultyScreen != 999999 && current.musicState == 53){
+				if (settings["debugMode"]){
+					print("Shantae and the Pirate's Curse AutoSplitter: Start! Pressed Enter on Difficulty screen.");
+				}
+				return true;
+			}
+		}
 	}
 }
 
@@ -381,14 +473,96 @@ split
 		return true;
 	}
 	
-//Logic for splitting on bosses other than Ammo Baron and True Pirate Master.
-	if (!vars.fightingBoss && !vars.fightingAmmoBaron && !vars.fightingFinalBoss  && vars.bossHealthHash.Contains(current.bossHealth)){
-		vars.fightingBoss = true;
+//Logic for splitting on bosses other than Squid Baron and True Pirate Master.
+	if (current.musicState == vars.musicBoss && old.musicState != vars.musicBoss){
 		if (settings["debugMode"]){
-			print("Shantae and the Pirate's Curse AutoSplitter: Fighting a boss! Are you ready to tussle?");
+			print("Shantae and the Pirate's Curse AutoSplitter: Current music is boss music.");
+		}
+		if (!vars.fightingBoss && !vars.fightingFinalBoss){
+			if (settings["debugMode"]){
+			print("Shantae and the Pirate's Curse AutoSplitter: Not fighting anyone else.");
+			}
+			if (vars.bossHealthHash.Contains(current.bossHealth)){
+				if (settings["debugMode"]){
+					print("Shantae and the Pirate's Curse AutoSplitter: \nBoss health value matched on Boss Health 1.\nBoss Health Hash 1 = "+current.bossHealth.ToString()+"\nBoss Health Hash 2 = "+current.finalBossHealth.ToString()+"\nDetected boss is "+vars.selectedBosses[current.bossHealth]);
+				}
+				//Special logic to check what combination of Dagron and Steel Maggot are selected.
+				if (current.bossHealth == vars.dagronAndSteelMaggotHealth && vars.dagronAndSteelMaggotChecker > 0){
+					if (vars.dagronAndSteelMaggotChecker == 1 || vars.dagronAndSteelMaggotChecker == 3){
+						vars.dagronAndSteelMaggotChecker -= 1;
+						vars.fightingBoss = true;
+						if (settings["debugMode"]){
+							print("Shantae and the Pirate's Curse AutoSplitter: Should be Dagron. Checker after adjusting =  "+vars.dagronAndSteelMaggotChecker.ToString());
+						}
+					}
+					else if (vars.dagronAndSteelMaggotChecker == 2){
+						vars.dagronAndSteelMaggotChecker -= 2;
+						vars.fightingBoss = true;
+						if (settings["debugMode"]){
+							print("Shantae and the Pirate's Curse AutoSplitter: Should be Steel Maggot. Checker after adjusting = "+vars.dagronAndSteelMaggotChecker.ToString());
+						}
+					}
+					else{
+						if (settings["debugMode"]){
+							print("Shantae and the Pirate's Curse AutoSplitter: Checker says there isn't another boss selected. Skipping. Checker = "+vars.dagronAndSteelMaggotChecker.ToString());
+						}
+					}
+				}
+				else if (current.bossHealth != vars.dagronAndSteelMaggotHealth){
+					vars.fightingBoss = true;
+					if (settings["debugMode"]){
+						print("Shantae and the Pirate's Curse AutoSplitter: Fighting a boss!");
+					}
+				}
+			}
+			else if (vars.bossHealthHash.Contains(current.finalBossHealth)){
+				if (settings["debugMode"]){
+					print("Shantae and the Pirate's Curse AutoSplitter: \nBoss health value matched on Boss Health 2.\nBoss Health Hash 1 = "+current.bossHealth.ToString()+"\nBoss Health Hash 2 = "+current.finalBossHealth.ToString()+"\nDetected boss is "+vars.selectedBosses[current.finalBossHealth]);
+				}
+				//Special logic to check what combination of Dagron and Steel Maggot are selected.
+				if (current.finalBossHealth == vars.dagronAndSteelMaggotHealth && vars.dagronAndSteelMaggotChecker > 0){
+					if (vars.dagronAndSteelMaggotChecker == 1 || vars.dagronAndSteelMaggotChecker == 3){
+						vars.dagronAndSteelMaggotChecker -= 1;
+						vars.fightingBoss = true;
+						if (settings["debugMode"]){
+							print("Shantae and the Pirate's Curse AutoSplitter: Should be Dagron. Checker after adjusting =  "+vars.dagronAndSteelMaggotChecker.ToString());
+						}
+					}
+					else if (vars.dagronAndSteelMaggotChecker == 2){
+						vars.dagronAndSteelMaggotChecker -= 2;
+						vars.fightingBoss = true;
+						if (settings["debugMode"]){
+							print("Shantae and the Pirate's Curse AutoSplitter: Should be Steel Maggot. Checker after adjusting = "+vars.dagronAndSteelMaggotChecker.ToString());
+						}
+					}
+					else{
+						if (settings["debugMode"]){
+							print("Shantae and the Pirate's Curse AutoSplitter: Checker says there isn't another boss selected. Skipping. Checker = "+vars.dagronAndSteelMaggotChecker.ToString());
+						}
+					}
+				}
+				else if (current.finalBossHealth != vars.dagronAndSteelMaggotHealth){
+					vars.fightingBoss = true;
+					if (settings["debugMode"]){
+						print("Shantae and the Pirate's Curse AutoSplitter: Fighting a boss!");
+					}
+				}
+			}
+			else{
+				if (settings["debugMode"]){
+					print("Boss health value not matched in hash. Not changing boolean.");
+					print("Boss Health Hash 1 = "+current.bossHealth.ToString());
+					print("Boss Health Hash 2 = "+current.finalBossHealth.ToString());
+				}
+			}
+		}
+		else{
+			if (settings["debugMode"]){
+				print("Currently fighting something else, no booleans changed.");
+			}
 		}
 	}
-	if (vars.fightingBoss && current.bossHealth == 0){
+	if (vars.fightingBoss && current.musicState == vars.musicNothing && old.musicState == vars.musicBoss){
 		vars.fightingBoss = false;
 		if (settings["debugMode"]){
 			print("Shantae and the Pirate's Curse AutoSplitter: Split! Defeated a boss.");
@@ -396,18 +570,44 @@ split
 		return true;
 	}
 	
-//Logic for splitting on last hit of Ammo Baron.
-	if (settings["ammoBaron"]){
-		if (!vars.fightingBoss && !vars.fightingAmmoBaron && !vars.fightingFinalBoss && current.bossHealth == vars.ammoBaronHealth){
-			vars.fightingAmmoBaron = true;
+//Logic for splitting on last hit of Squid Baron.
+	if (current.musicState == vars.musicSquidBaron && old.musicState != vars.musicSquidBaron){
+		if (settings["debugMode"]){
+			print ("Shantae and the Pirate's Curse AutoSplitter: Current music is Squid Baron's music");
+		}
+		if (!vars.fightingBoss && !vars.fightingFinalBoss){
 			if (settings["debugMode"]){
-				print("Shantae and the Pirate's Curse AutoSplitter: Fighting Ammo Baron!");
+				print ("Shantae and the Pirate's Curse AutoSplitter: Not currently fighting anyone.");
+			}
+			if (vars.bossHealthHash.Contains(current.bossHealth) || vars.bossHealthHash.Contains(current.finalBossHealth)){
+				vars.fightingBoss = true;
+				if (settings["debugMode"]){
+					print("Shantae and the Pirate's Curse AutoSplitter: Fighting Squid Baron!");
+				}
+			}
+			else{
+				if (settings["debugMode"]){
+					print("Shantae and the Pirate's Curse AutoSplitter: Boss health value is not in hash. Not changing boolean.");
+				}
 			}
 		}
-		if (vars.fightingAmmoBaron && current.bossHealth == 65536 && current.musicState == vars.musicNothing){
-			vars.fightingAmmoBaron = false;
+		else{
 			if (settings["debugMode"]){
-				print("Shantae and the Pirate's Curse AutoSplitter: Split! Defeated Ammo Baron.");
+				print("Shantae and the Pirate's Curse AutoSplitter: Currently fighting something else, no booleans changed.");
+			}
+		}
+	}
+	if (vars.fightingBoss && current.musicState == vars.musicNothing && old.musicState == vars.musicSquidBaron){
+		if (!vars.squidBaronMusicReady){
+			vars.squidBaronMusicReady = true;
+			if (settings["debugMode"]){
+				print("Shantae and the Pirate's Curse AutoSplitter: Ready to split on Squid Baron's defeat.");
+			}
+		}
+		else if (vars.squidBaronMusicReady){
+			vars.fightingBoss = false;
+			if (settings["debugMode"]){
+				print("Shantae and the Pirate's Curse AutoSplitter: Split! Defeated Squid Baron.");
 			}
 			return true;
 		}
@@ -415,7 +615,7 @@ split
 	
 //Logic for splitting on last hit of True Pirate Master.
 	if (settings["truePirateMaster"]){
-		if (!vars.fightingBoss && !vars.fightingAmmoBaron && !vars.fightingFinalBoss && current.finalBossHealth == vars.pirateMasterHealth && current.musicState == vars.musicFinalBoss){
+		if (!vars.fightingBoss && !vars.fightingFinalBoss && current.finalBossHealth == vars.pirateMasterHealth && current.musicState == vars.musicFinalBoss){
 			vars.fightingFinalBoss = true;
 			if (settings["debugMode"]){
 				print("Shantae and the Pirate's Curse AutoSplitter: Fighting the Pirate Master's true form!");
@@ -454,6 +654,7 @@ onReset
 
 	vars.fightingFinalBoss = false;
 	vars.finalBossMusicReady = false;
+	vars.squidBaronMusicReady = false;
 	if (settings["debugMode"]){
 		print("Shantae and the Pirate's Curse AutoSplitter: Resetting variables fightingFinalBoss and finalBossMusicReady to false.");
 	}
