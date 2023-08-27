@@ -8,7 +8,6 @@ state("Shantae and the Pirate's Curse", "v1.04g (GOG)")
 	long keyItems2_2ndSave: 0x2ED734;
 	long keyItems1_3rdSave: 0x2EF158;
 	long keyItems2_3rdSave: 0x2EF15C;
-	//int screenState: 0x2EAADC;
 	int screenState: 0x2F26E0;
 	int buttonInputs: 0x2F915C;
 	int keyboardInputs: 0x2F03AC, 0x44;
@@ -26,7 +25,6 @@ state("ShantaeCurse", "v1.03 (Steam)")
 	long keyItems2_2ndSave: 0x2F52D4;
 	long keyItems1_3rdSave: 0x2F6CF8;
 	long keyItems2_3rdSave: 0x2F6CFC;
-	//int screenState: 0x2E5044, 0x4;
 	int screenState: 0x2FAA64;
 	int buttonInputs: 0x3022D8;
 	int keyboardInputs: 0x2F88A0, 0x44;
@@ -352,6 +350,7 @@ init
 		}
 	}
 	
+//Copy the value of the selected settings for Dagron and Steel Maggot so it can be reset in onReset.
 	vars.dagronAndSteelMaggotValue = vars.dagronAndSteelMaggotChecker;
 	if (settings["debugMode"]){
 		print("Shantae and the Pirate's Curse AutoSplitter: \ndagronAndSteelMaggotValue set to value of Checker.");
@@ -472,7 +471,7 @@ split
 		}
 		return true;
 	}
-	
+
 //Logic for splitting on bosses other than Squid Baron and True Pirate Master.
 	if (current.musicState == vars.musicBoss && old.musicState != vars.musicBoss){
 		if (settings["debugMode"]){
@@ -655,7 +654,8 @@ onReset
 	vars.fightingFinalBoss = false;
 	vars.finalBossMusicReady = false;
 	vars.squidBaronMusicReady = false;
+	vars.dagronAndSteelMaggotChecker = vars.dagronAndSteelMaggotValue;
 	if (settings["debugMode"]){
-		print("Shantae and the Pirate's Curse AutoSplitter: Resetting variables fightingFinalBoss and finalBossMusicReady to false.");
+		print("Shantae and the Pirate's Curse AutoSplitter: Reset variables fightingFinalBoss, finalBossMusicReady, and squidBaronMusicReady to false.\nReset dagronSteelMaggotChecker to dagronSteelMaggotValue.");
 	}
 }
