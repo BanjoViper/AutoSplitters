@@ -9,7 +9,7 @@ The autosplitter is set up with the below functions:
   
 **Automatic Start** - Will start the timer upon selection of Normal Mode or Pirate Mode. Can be turned on or off in the Settings menu.
 
-**Automatic Splits** - Can split on any Key Item pickup, boss defeat, or at the end of Run, Run, Rottytops! Customized in the Settings menu.
+**Automatic Splits** - Can split on any Key Item pickup, boss defeat, or at the end of Run, Run, Rottytops! Customizable in the Settings menu.
 
 ### **All functions of this autosplitter can be toggled on or off through the Settings menu within LiveSplit.**
 
